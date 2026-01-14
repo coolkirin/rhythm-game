@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Rhythm Hero</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  background:black;
+  color:white;
+  font-family:sans-serif;
+  text-align:center;
+}
+button{
+  padding:15px 30px;
+  font-size:18px;
+  margin:10px;
+}
+.screen{
+  display:none;
+}
+#start, #songSelect, #difficulty{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+canvas{
+  display:none;
+  background:#111;
+}
+</style>
+</head>
+<body>
+
+<!-- 시작 화면 -->
+<div id="start" class="screen" style="display:flex">
+  <h1>🎵 Rhythm Game</h1>
+  <button onclick="goSong()">START</button>
+</div>
+
+<!-- 노래 선택 -->
+<div id="songSelect" class="screen">
+  <h2>노래 선택</h2>
+  <button onclick="selectSong(0)">🎶 Song 1</button>
+  <button onclick="selectSong(1)">🎶 Song 2</button>
+</div>
+
+<!-- 난이도 선택 -->
+<div id="difficulty" class="screen">
+  <h2>난이도 선택</h2>
+  <button onclick="startGame('easy')">EASY</button>
+  <button onclick="startGame('normal')">NORMAL</button>
+  <button onclick="startGame('hard')">HARD</button>
+</div>
+
+<!-- 게임 화면 -->
+<canvas id="game"></canvas>
+
+<script>
+const screens = {
+  start: document.getElementById("start"),
+  song: document.getElementById("songSelect"),
+  diff: document.getElementById("difficulty")
+};
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let selectedSong = null;
+let speed = 4;
+let interval = 700;
+let notes = [];
+
+const songs = [
+  { src:"music1.mp3" },
+  { src:"music3.mp3" }
+];
+
+function show(screen){
+  Object.values(screens).forEach(s=>s.style.display="none");
+  screen.style.display="flex";
+}
+
+function goSong(){
+  show(screens.song);
+}
+
+function selectSong(i){
+  selectedSong = songs[i];
+  show(screens.diff);
+}
+
+function startGame(level){
+  if(level==="easy"){ speed=3; interval=800; }
+  if(level==="normal"){ speed=5; interval=600; }
+  if(level==="hard"){ speed=8; interval=350; }
+
+  screens.diff.style.display="none";
+  canvas.style.display="block";
+
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+
+  startRhythm();
+}
+
+function startRhythm(){
+  setInterval(()=>{
+    notes.push({x:Math.random()*canvas.width, y:-20});
+  }, interval);
+
+  loop();
+}
+
+function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // 판정선
+  ctx.strokeStyle="red";
+  ctx.beginPath();
+  ctx.moveTo(0,canvas.height-120);
+  ctx.lineTo(canvas.width,canvas.height-120);
+  ctx.stroke();
+
+  // 노트 (막대)
+  notes.forEach(n=>{
+    n.y += speed;
+    ctx.fillStyle="cyan";
+    ctx.fillRect(n.x, n.y, 40, 15);
+  });
+
+  requestAnimationFrame(loop);
+}
+</script>
+
+</body>
+</html>
