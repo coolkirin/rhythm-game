@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>rhythm hero.png
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rhythm Hero</title>
+<style>
+html,body{margin:0;overflow:hidden;background:black;color:white;font-family:sans-serif}
+#ui{position:fixed;top:20px;left:50%;transform:translateX(-50%);font-size:32px}
+#select{
+ position:fixed;inset:0;
+ display:flex;flex-direction:column;
+ justify-content:center;align-items:center;
+ gap:20px;background:black
+}
+button{
+ font-size:22px;padding:14px 30px;
+ border:none;border-radius:12px;
+ background:#2196f3;color:white
+}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div id="ui"></div>
+
+<div id="select">
+ <h1>🎵 노래 선택</h1>
+ <button onclick="startSong(0)">🎶 Chill Beat</button>
+ <button onclick="startSong(1)">🔥 Fast Beat</button>
+ <button onclick="startSong(2)">😵 Chaos Beat</button>
+</div>
+
+<script>
+const c=document.getElementById("c"),ctx=c.getContext("2d");
+const ui=document.getElementById("ui");
+const select=document.getElementById("select");
+
+function resize(){c.width=innerWidth;c.height=innerHeight}
+resize();addEventListener("resize",resize);
+
+const songs=[
+ {src:"Tobu-candyland.mp3",speed:4,interval:700},
+ {src:"music 2.mp3",speed:6,interval:450},
+ {src:"puzzle3.mp3",speed:9,interval:280}
+];
+
+let audio=new Audio();
+let notes=[],score=0,speed=4,spawn;
+
+const lanes=()=>[c.width*0.3,c.width*0.5,c.width*0.7];
+const hitY=()=>c.height-120;
+
+function startSong(i){
+ select.style.display="none";
+ score=0;notes=[];
+ audio.src=songs[i].src;
+ audio.play();
+ speed=songs[i].speed;
+
+ spawn=setInterval(()=>{
+  const x=lanes()[Math.floor(Math.random()*3)];
+  notes.push({x,y:-20,hit:false});
+ },songs[i].interval);
+}
+
+addEventListener("pointerdown",()=>{
+ notes.forEach(n=>{
+  if(!n.hit && Math.abs(n.y-hitY())<30){
+   n.hit=true;score+=100;
+   ui.textContent="PERFECT!";
+   setTimeout(()=>ui.textContent="",200);
+  }
+ });
+});
+
+function loop(){
+ ctx.clearRect(0,0,c.width,c.height);
+
+ ctx.strokeStyle="#333";
+ lanes().forEach(x=>{
+  ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,c.height);ctx.stroke();
+ });
+
+ ctx.strokeStyle="white";
+ ctx.beginPath();ctx.moveTo(0,hitY());ctx.lineTo(c.width,hitY());ctx.stroke();
+
+ notes.forEach(n=>{
+  n.y+=speed;
+  ctx.fillStyle=n.hit?"lime":"cyan";
+  ctx.beginPath();ctx.arc(n.x,n.y,14,0,Math.PI*2);ctx.fill();
+ });
+
+ notes=notes.filter(n=>{
+  if(n.y>c.height){
+   if(!n.hit){
+    ui.textContent="MISS";
+    setTimeout(()=>ui.textContent="",200);
+   }
+   return false;
+  }
+  return true;
+ });
+
+ ctx.fillStyle="white";
+ ctx.font="20px sans-serif";
+ ctx.fillText("SCORE: "+score,20,30);
+
+ requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
